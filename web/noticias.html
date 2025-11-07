@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notícias sobre Autismo</title>
+    <link rel="stylesheet" href="css/noticias.css" />
+    <link href="css/style.css" rel="stylesheet" type="text/css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <header>
+    <div class="header-container">
+        <div class="logo">
+            <img src="icon/logo.png" alt=""/>
+        </div>
+        <nav class="main-nav">
+                <a href="index.jsp">Início</a>
+                <a href="perfil.jsp">Perfil</a>
+                <a href="noticias.html">Notícias</a>
+                <a href="clinicasprox.html">Clínicas</a>
+                <a href="chat.html">IA bea</a>
+            </nav>
+        <div class="menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</header>
+
+    <section class="noticias-hero">
+      <div class="sempre-atualizado">
+          <img src="icon/noticias.png" alt=""/>
+          <span>Sempre Atualizado</span>
+      </div>
+      <h1>Notícias sobre <span>Autismo</span></h1>
+      <p>Mantenha-se informado com as últimas pesquisas, avanços científicos e políticas públicas relacionadas ao espectro autista.</p>
+    </section>
+
+    <main class="noticias-container" id="noticias-container">
+      <!-- Exemplo de estrutura do card que será gerado pela API -->
+      <article class="noticia-card">
+        <img src="" alt="" />
+        <div class="content">
+          <span class="categoria"></span>
+          <h2></h2>
+          <p></p>
+          <div class="info">
+            <span class="data"></span>
+            <span class="tempo-leitura"></span>
+          </div>
+          <a href="#" class="ler-mais">Ler mais</a>
+        </div>
+      </article>
+    </main>
+      
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <div class="logo-footer">
+                    <img src="icon/logo.png" alt=""/>
+                    <span>Teamais</span>
+                </div>
+                <p>Nossa missão é ajudar responsáveis e entender mais sobre o espectro autista e auxiliar com informações verdadeiras sobre como lidar com seus filhos autistas.</p>
+            </div>
+
+        <div class="footer-section">
+        <h4>Links rápidos</h4>
+        <nav>
+           <a href="index.jsp" >Início</a>
+           <a href="curio.jsp" >Curiosidades</a>    
+           <a href="direitoseleis.jsp">Direitos e leis</a>
+           <a href="entendendo-autismo.jsp">Entendendo</a>       
+           <a href="diagnostico.jsp">Diagnostico</a>
+        </nav>
+      </div>
+    </footer>
+
+    <script>
+      // Menu Toggle
+      document.querySelector('.menu-toggle').addEventListener('click', function() {
+        this.classList.toggle('active');
+        document.querySelector('nav').classList.toggle('active');
+      });
+
+      document.querySelectorAll('nav a').forEach(link => {
+        link.addEventListener('click', () => {
+          document.querySelector('.menu-toggle').classList.remove('active');
+          document.querySelector('nav').classList.remove('active');
+        });
+      });
+
+      // Função para formatar a data
+      function formatarData(dataString) {
+        const data = new Date(dataString);
+        return data.toLocaleDateString('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+
+      // Função para criar card de notícia
+      function criarCardNoticia(noticia) {
+        return `
+          <article class="noticia-card">
+            <img src="${noticia.imagem}" alt="${noticia.titulo}" onerror="this.src='../img/noticia-padrao.jpg'" />
+            <div class="content">
+              <span class="categoria">Autismo</span>
+              <h2>${noticia.titulo}</h2>
+              <p>${noticia.descricao}</p>
+              <div class="info">
+                <span class="data">${formatarData(noticia.dataPublicacao)}</span>
+              </div>
+              <a href="${noticia.link}" target="_blank" class="ler-mais">Ler mais</a>
+            </div>
+          </article>
+        `;
+      }
+
+      // Função para carregar as notícias
+      async function carregarNoticias() {
+        const container = document.getElementById('noticias-container');
+        
+        try {
+          const response = await fetch('https://api-noticias-f5of.onrender.com/api/noticias');
+          if (!response.ok) {
+            throw new Error('Erro ao carregar notícias');
+          }
+          
+          const data = await response.json();
+          
+          if (!data || data.length === 0) {
+            container.innerHTML = '<p class="sem-noticias">Nenhuma notícia encontrada.</p>';
+            return;
+          }
+
+          // Limpa o container antes de adicionar as novas notícias
+          container.innerHTML = '';
+          
+          // Cria e adiciona cada card de notícia
+          data.forEach(noticia => {
+            container.innerHTML += criarCardNoticia(noticia);
+          });
+          
+        } catch (error) {
+          console.error('Erro ao carregar notícias:', error);
+          container.innerHTML = `
+            <div class="erro-container">
+              <p class="erro-mensagem">Não foi possível carregar as notícias no momento.</p>
+              <button onclick="carregarNoticias()" class="botao-tentar-novamente">Tentar novamente</button>
+            </div>
+          `;
+        }
+      }
+
+      // Carregar notícias quando a página carregar
+      window.addEventListener('load', carregarNoticias);
+    </script>
+   
+
+  </body>
+</html>

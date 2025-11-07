@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Clínicas Especializadas em Autismo | TEA+</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css"/>
+  <link href="css/clinicas.css" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+</head>
+<body>
+  <header>
+    <div class="header-container">
+      <div class="logo">
+        <img src="icon/logo.png" alt="Logo do site" />
+  
+      </div>
+      <nav class="main-nav">
+        <a href="index.jsp">Início</a>
+        <a href="perfil.jsp">Perfil</a>
+        <a href="noticias.html">Notícias</a>
+        <a href="clinicasprox.html">Clínicas</a>
+        <a href="chat.html">IA bea</a>
+      
+      </nav>
+      <div class="menu-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </header>
+
+
+  <main>
+    <section class="hero-clinicas">
+      <h1>Clínicas <span class="destaque">Especializadas</span> em <span class="destaque">Autismo</span></h1>
+      <p>Encontre clínicas e profissionais especializados em Transtorno do Espectro Autista na sua região. Cuidado especializado e acolhedor para toda a família.</p>
+    </section>
+
+    <section class="busca-clinicas">
+      <div class="busca-container">
+        <div class="busca-form">
+          <button id="buscarClinicas" class="btn-buscar">Buscar Clínicas Próximas</button>
+          <div id="status" class="status-message"></div>
+        </div>
+        <div id="resultado" class="clinicas-lista"></div>
+      </div>
+    </section>
+
+    <section class="lista-clinicas">
+      <h2>Clínicas Encontradas</h2>
+      <p class="subtitulo">Resultados da sua busca por clínicas e profissionais</p>
+      <div class="clinicas-grid" id="clinicas-results">
+        <p id="no-clinics-message" style="text-align: center; margin-top: 20px; color: #666;">Nenhuma clínica encontrada ainda. Tente buscar ou usar sua localização.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-section">
+        <div class="logo-footer">
+            <img src="icon/logo.png" alt=""/>
+          <span>Teamais</span>
+        </div>
+        <p>Nossa missão é ajudar responsáveis e entender mais sobre o espectro autista e auxiliar com informações verdadeiras sobre como lidar com seus filhos autistas.</p>
+      </div>
+
+       <div class="footer-section">
+        <h4>Links rápidos</h4>
+        <nav>
+           <a href="index.jsp" >Início</a>
+           <a href="curio.jsp" >Curiosidades</a>    
+           <a href="direitoseleis.jsp">Direitos e leis</a>
+           <a href="entendendo-autismo.jsp">Entendendo</a>       
+           <a href="diagnostico.jsp">Diagnostico</a>
+        </nav>
+      </div>
+   <!-- SCRIPT UNIFICADO -->
+  <script>
+    const API_URL = "https://api-localizacao-5sf4.onrender.com";
+    const RAIO_METROS = 10000;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const buscarButton = document.getElementById('buscarClinicas');
+      if (buscarButton) buscarButton.addEventListener('click', buscarClinicas);
+
+      const menuToggle = document.querySelector('.menu-toggle');
+      const navMenu = document.querySelector('nav');
+
+      if (menuToggle && navMenu) {
+        menuToggle.addEventListener('click', function () {
+          this.classList.toggle('active');
+          navMenu.classList.toggle('active');
+        });
+
+        document.querySelectorAll('nav a').forEach(link => {
+          link.addEventListener('click', () => {
+            menuToggle.classList.remove('active');
+            navMenu.classList.remove('active');
+          });
+        });
+      }
+    });
+
+    function calcularDistancia(lat1, lon1, lat2, lon2) {
+      if (isNaN(lat1) || isNaN(lon1) || isNaN(lat2) || isNaN(lon2)) return 0;
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) ** 2 +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) || 0;
+    }
+
+    async function obterLocalizacao() {
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject(new Error('Geolocalização não é suportada pelo seu navegador.'));
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            resolve({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            });
+          },
+          (error) => {
+            let errorMessage = 'Erro ao obter localização.';
+            switch (error.code) {
+              case error.PERMISSION_DENIED:
+                errorMessage = 'Permissão de geolocalização negada.';
+                break;
+              case error.POSITION_UNAVAILABLE:
+                errorMessage = 'Localização indisponível.';
+                break;
+              case error.TIMEOUT:
+                errorMessage = 'Tempo esgotado para obter localização.';
+                break;
+            }
+            reject(new Error(errorMessage));
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+          }
+        );
+      });
+    }
+
+    async function buscarClinicas() {
+      const status = document.getElementById("status");
+      const clinicasGrid = document.getElementById('clinicas-results');
+
+      if (status) {
+        status.textContent = "Obtendo sua localização...";
+        status.className = "status-message";
+      }
+      if (clinicasGrid) clinicasGrid.innerHTML = '';
+
+      try {
+        const coordenadas = await obterLocalizacao();
+
+        if (status) status.textContent = "Buscando clínicas próximas...";
+
+        const url = `${API_URL}/api/clinicas/proximas?lat=${coordenadas.lat}&lng=${coordenadas.lng}&raioEmMetros=${RAIO_METROS}`;
+
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          mode: 'cors',
+          credentials: 'omit'
+        });
+
+        if (!response.ok) {
+          let errorMessage = `Erro na requisição: ${response.status} ${response.statusText}`;
+          try {
+            const errorData = await response.json();
+            if (errorData && errorData.message) errorMessage = errorData.message;
+          } catch (_) {}
+          throw new Error(errorMessage);
+        }
+
+        const data = await response.json();
+        const clinicas = data.body.clinicas;
+
+        if (!clinicas || !Array.isArray(clinicas)) {
+          throw new Error('Formato de resposta inválido da API.');
+        }
+
+        if (status) {
+          status.textContent = `Encontradas ${clinicas.length} clínicas em até ${RAIO_METROS / 1000} km:`;
+          status.classList.remove("erro");
+        }
+
+        if (clinicas.length === 0) {
+          clinicasGrid.innerHTML = `
+            <div class="no-results">
+              <p>Nenhuma clínica encontrada na sua região.</p>
+              <p>Tente aumentar o raio de busca ou verificar se há clínicas cadastradas.</p>
+            </div>
+          `;
+          return;
+        }
+
+        clinicas.forEach(clinica => {
+          const clinicaCard = document.createElement('div');
+          clinicaCard.className = 'clinica-card';
+          clinicaCard.innerHTML = `
+            <h3>${clinica.nome}</h3>
+            <p class="endereco">📍 ${clinica.rua}</p>
+            ${clinica.telefone ? `<p class="telefone">📞 ${clinica.telefone}</p>` : ''}
+            ${clinica.email ? `<p class="email">✉️ ${clinica.email}</p>` : ''}
+            ${clinica.website ? `<p class="website"><a href="${clinica.website}" target="_blank">🌐 Visitar site</a></p>` : ''}
+          `;
+          clinicasGrid.appendChild(clinicaCard);
+        });
+
+      } catch (error) {
+        console.error('Erro:', error);
+        if (status) {
+          let displayMessage = "Erro ao buscar clínicas.";
+          if (error.message.includes("Geolocalização")) displayMessage = error.message;
+          else if (error.message.includes("Failed to fetch")) displayMessage = "Não foi possível conectar à API.";
+          else if (error.message.includes("Erro na requisição")) displayMessage = `Erro da API: ${error.message}`;
+          else displayMessage = `Erro: ${error.message}`;
+
+          status.textContent = displayMessage;
+          status.classList.add("erro");
+        }
+
+        if (clinicasGrid) {
+          clinicasGrid.innerHTML = `
+            <div class="error-message">
+              <p>Não foi possível buscar as clínicas.</p>
+              <p>Tente novamente mais tarde.</p>
+              <p>Erro técnico: ${error.message}</p>
+            </div>
+          `;
+        }
+      }
+    }
+  </script>
+</body>
+</html>
+

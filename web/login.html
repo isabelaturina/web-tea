@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - TeamAIS</title>
+    <link href="css/login.css" rel="stylesheet" type="text/css" />
+    <!-- Font Awesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        .error-msg {
+            color: #fff;
+            background-color: #e74c3c;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-side">
+            <div class="infinity-icon">
+                <img src="icon/logo.png" alt="Logo TeamAIS" />
+            </div>
+            <h2>Bem-vindo de volta!</h2>
+            <p>Que bom ter você aqui novamente! Entre com suas credenciais para continuar.</p>
+        </div>
+        <div class="right-side">
+            <a href="index.jsp" class="back-link"><i class="fas fa-arrow-left"></i> Voltar</a>
+            <h2>Faça seu Login</h2>
+
+            <!-- Mensagem de erro -->
+            <div id="mensagem-erro" class="error-msg" style="display: none;"></div>
+
+            <!-- Formulário de login -->
+            <form id="loginForm" action="login.jsp" method="POST" onsubmit="return validateForm()">
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required placeholder="Digite seu email" />
+                </div>
+                <div class="form-group">
+                    <label for="senha">Senha:</label>
+                    <input type="password" id="senha" name="senha" required placeholder="Digite sua senha" />
+                </div>
+                <button type="submit" class="submit">Entrar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script para validação e exibir erro da URL -->
+    <script>
+        function validateForm() {
+            const email = document.getElementById("email").value.trim();
+            const senha = document.getElementById("senha").value.trim();
+
+            if (!email || !senha) {
+                alert("Por favor, preencha todos os campos!");
+                return false;
+            }
+            return true;
+        }
+
+        // Exibe mensagem de erro da URL (ex: ?error=Email+não+cadastrado)
+        const params = new URLSearchParams(window.location.search);
+        const erro = params.get("error");
+        if (erro) {
+            const mensagemErro = document.getElementById("mensagem-erro");
+            mensagemErro.textContent = decodeURIComponent(erro.replace(/\+/g, " "));
+            mensagemErro.style.display = "block";
+        }
+    </script>
+</body>
+</html>

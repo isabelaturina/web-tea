@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IA BEA | TEA+</title>
+    <link href="css/style.css" rel="stylesheet" type="text/css"/>
+    <link href="css/chat.css" rel="stylesheet" type="text/css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  
+  <header>
+    <div class="header-container">
+        <div class="logo">
+            <img src="icon/logo.png" alt=""/>
+        </div>
+        <nav class="main-nav">
+                <a href="index.jsp">Início</a>
+                <a href="perfil.jsp">Perfil</a>
+                <a href="noticias.html">Notícias</a>
+                <a href="clinicasprox.html">Clínicas</a>
+                <a href="chat.html">IA bea</a>
+            </nav>
+        <div class="menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</header>
+
+    <main>
+        <section class="chat-hero">
+            <h1><span>Converse com a Bea</span></h1>
+            <p> Um espaço seguro para conversar com nossa IA amiga.</p>
+        </section>
+
+        <section class="chat-container">
+            <div class="chat-feed">
+            
+            </div>
+
+            <div class="chat-input">
+                <form id="message-form">
+                    <div class="input-wrapper">
+                        <input 
+                            type="text" 
+                            id="message-input" 
+                            placeholder="Digite sua mensagem..."
+                            required
+                        >
+                        <button type="submit">Enviar</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <div class="logo-footer">
+                    <img src="icon/logo.png" alt=""/>
+                    <span>Teamais</span>
+                </div>
+                <p>Nossa missão é ajudar responsáveis e entender mais sobre o espectro autista e auxiliar com informações verdadeiras sobre como lidar com seus filhos autistas.</p>
+            </div>
+
+              <div class="footer-section">
+        <h4>Links rápidos</h4>
+        <nav>
+           <a href="index.jsp" >Início</a>
+           <a href="curio.jsp" >Curiosidades</a>    
+           <a href="direitoseleis.jsp">Direitos e leis</a>
+           <a href="entendendo-autismo.jsp">Entendendo</a>       
+           <a href="diagnostico.jsp">Diagnostico</a>
+        </nav>
+      </div>
+            
+        </div>
+    </footer>
+
+   <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const messageForm = document.getElementById('message-form');
+        const messageInput = document.getElementById('message-input');
+        const chatFeed = document.querySelector('.chat-feed');
+
+        function createMessage(text, isUser = true) {
+          const div = document.createElement('div');
+          div.classList.add('message');
+          div.classList.add(isUser ? 'current-user' : 'other-user');
+          div.innerHTML = `
+            <div class="message-content">
+              <p>${text}</p>
+              <span class="message-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            </div>
+          `;
+          return div;
+        }
+
+        // Função para enviar mensagem para a API e exibir no chat
+        function enviarMensagemParaAPI(text) {
+          const userMessage = createMessage(text, true);
+          chatFeed.appendChild(userMessage);
+          chatFeed.scrollTop = chatFeed.scrollHeight;
+
+          fetch('https://api-chat-pc6t.onrender.com/chat',  {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ mensagem: text })
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error("Erro na resposta da API");
+            }
+            return response.text();
+          })
+          .then(data => {
+            const resposta = data && data.trim() !== '' 
+              ? data 
+              : 'Desculpe, não consegui entender sua pergunta. Pode tentar reformular?';
+            const aiMessage = createMessage(resposta, false);
+            chatFeed.appendChild(aiMessage);
+            chatFeed.scrollTop = chatFeed.scrollHeight;
+          })
+          .catch(error => {
+            console.error('Erro ao se comunicar com a API:', error);
+            const fallback = createMessage("Desculpe, estou com dificuldades técnicas. Tente novamente mais tarde.", false);
+            chatFeed.appendChild(fallback);
+            chatFeed.scrollTop = chatFeed.scrollHeight;
+          });
+        }
+
+        messageForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const text = messageInput.value.trim();
+
+          if (text) {
+            enviarMensagemParaAPI(text);
+            messageInput.value = '';
+          }
+        });
+
+        // Envia automaticamente a mensagem inicial ao carregar a página
+        enviarMensagemParaAPI("Olá, quem é você");
+
+        // Menu mobile igual ao style.css
+        const menuToggle = document.querySelector('.menu-toggle');
+        const mainNav = document.querySelector('.main-nav');
+
+        menuToggle.addEventListener('click', function() {
+          mainNav.classList.toggle('active');
+          menuToggle.classList.toggle('active');
+        });
+
+        // Fechar o menu ao clicar em um link (opcional)
+        mainNav.querySelectorAll('a').forEach(link => {
+          link.addEventListener('click', () => {
+            if (mainNav.classList.contains('active')) {
+              mainNav.classList.remove('active');
+              menuToggle.classList.remove('active');
+            }
+          });
+        });
+      });
+    </script>
+</body>
+</html>
