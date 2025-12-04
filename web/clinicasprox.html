@@ -80,8 +80,10 @@
       </div>
    <!-- SCRIPT UNIFICADO -->
   <script>
-    const API_URL = "https://api-localizacao-5sf4.onrender.com";
-    const RAIO_METROS = 10000;
+  const API_URL = "https://api-clinicasproximas.onrender.com";
+const url = `${API_URL}/api/clinicas/proximas?lat=${coordenadas.lat}&lng=${coordenadas.lng}&raioEmMetros=${RAIO_METROS}`;
+
+
 
     document.addEventListener('DOMContentLoaded', () => {
       const buscarButton = document.getElementById('buscarClinicas');

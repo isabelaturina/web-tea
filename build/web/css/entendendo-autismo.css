@@ -228,7 +228,11 @@
     font-weight: 600;
     margin-bottom: 0.2rem;
 }
-
+.stat-label {
+    color: #7fcfff; /* azul claro */
+    font-size: 0.9rem;
+    font-weight: 500;
+}
 /* Botões de ação */
 .action-buttons {
     display: flex;

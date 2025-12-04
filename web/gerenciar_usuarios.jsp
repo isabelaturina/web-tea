@@ -47,12 +47,13 @@
                         ResultSet rs = null;
                         
                         try {
-                            Class.forName("com.mysql.cj.jdbc.Driver");
-                            String url = "jdbc:mysql://localhost:3306/tea";
-                            String user = "";
-                            String password = "";
-                            
-                            conexao = DriverManager.getConnection(url, user, password);
+                           Class.forName("com.mysql.cj.jdbc.Driver");
+
+                            String url = System.getenv("JDBC_URL") + "/" + System.getenv("DB_NAME") + "?useSSL=true&requireSSL=true&serverTimezone=UTC";
+                            String userDB = System.getenv("DB_USER");
+                            String passDB = System.getenv("DB_PASS");
+                            conexao = DriverManager.getConnection(url, userDB, passDB);
+
                             
                             String searchTerm = request.getParameter("search");
                             String sql;
